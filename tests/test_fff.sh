@@ -96,7 +96,7 @@ testFFF() {
   local test_functions=(
     "testValidation" "testConvert" 
     "testSpaces" "testVisualIntegrity" 
-    "testFFFCleanup" "testFFFMergeLoop"
+    "testFFFCleanup" "testFFFMergeLoop")
   local ignored_tests=()
   
   bashTestRunner test_functions ignored_tests

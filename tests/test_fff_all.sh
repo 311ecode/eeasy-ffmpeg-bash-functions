@@ -4,8 +4,7 @@ testFFFAll() {
   export LC_NUMERIC=C
 
 
-  setupTestAssets || return 1
-  local test_functions=("testFFF" "testFFFVisual")
+  local test_functions=("testFFF" "testFFFVisual" "testFFFMergeLoop" "testFFFCleanup")
   local ignored_tests=()
   
   bashTestRunner test_functions ignored_tests

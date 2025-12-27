@@ -1,33 +1,26 @@
 #!/bin/bash
 
-# Define the root directory relative to this script
-FFF_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 function fff() {
     local action="$1"
     
-    # 1. Interactive Mode Check
-    # If no arguments are passed, try to launch gum-based interactive mode
+    # Default to help
     if [ -z "$action" ]; then
-        if command -v gum &> /dev/null; then
-            fff_interactive
-            return $?
-        else
-            fff_help
-            return 0
-        fi
+        action="help"
     fi
 
-    # 2. Command Dispatcher
-    # Map 'fff speed' to 'fff_speed', etc.
+    # Construct function name
     local func_name="fff_${action}"
 
+    # Check if the function exists in the namespace (loaded by loader)
     if declare -F "$func_name" > /dev/null; then
-        shift # Remove action name from arguments
+        # Remove the action argument, unless it's help (optional preference)
+        if [ "$action" != "help" ]; then
+            shift
+        fi
         "$func_name" "$@"
     else
         echo "❌ Unknown command: '$action'"
-        echo "Try 'fff help' to see available commands."
+        echo "   (Ensure you have sourced 'loader')"
         return 1
     fi
 }
