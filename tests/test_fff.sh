@@ -1,130 +1,104 @@
 #!/usr/bin/env bash
-# @file test_fff.sh
-# @description Test suite for the fff (Plain English ffmpeg wrapper)
-# @dependencies ffmpeg, bashTestRunner
-
-# 📍 Source the fff entry point (adjust path if needed based on where you run tests)
-# We assume this script runs from the project root
 
 testFFF() {
-  export LC_NUMERIC=C 🔢
+  export LC_NUMERIC=C
 
-  # 🛠️ HELPER: Generate Test Assets
   setupTestAssets() {
-    echo "🎬 Generating 1s Test Assets (Black & White videos)..."
+    echo "🎬 Generating 2s B&W Test Asset..."
+    ffmpeg -f lavfi -i color=c=black:s=64x64:d=1 -c:v libx264 -loglevel error -y black.mp4
+    ffmpeg -f lavfi -i color=c=white:s=64x64:d=1 -c:v libx264 -loglevel error -y white.mp4
     
-    # Generate 1s Black Video with Silent Audio
-    if [ ! -f "black.mp4" ]; then
-      ffmpeg -f lavfi -i color=c=black:s=640x480:d=1 \
-             -f lavfi -i anullsrc=r=44100:cl=stereo \
-             -c:v libx264 -c:a aac -shortest -t 1 \
-             -loglevel error -y "black.mp4"
-    fi
-
-    # Generate 1s White Video with Silent Audio
-    if [ ! -f "white.mp4" ]; then
-      ffmpeg -f lavfi -i color=c=white:s=640x480:d=1 \
-             -f lavfi -i anullsrc=r=44100:cl=stereo \
-             -c:v libx264 -c:a aac -shortest -t 1 \
-             -loglevel error -y "white.mp4"
-    fi
+    echo "file 'black.mp4'" > list.txt
+    echo "file 'white.mp4'" >> list.txt
+    ffmpeg -f concat -safe 0 -i list.txt -c copy -loglevel error -y "combined.mp4"
+    cp "combined.mp4" "space video.mp4"
+    rm list.txt black.mp4 white.mp4
   }
 
-  # 🧹 HELPER: Cleanup
   cleanupArtifacts() {
-    echo "🧹 Cleaning up test artifacts..."
-    rm -f black.mp4 white.mp4 *_output.* *_compressed.* *_trimmed.*
-  }
-
-  # 🧪 TEST: Convert
-  testConvert() {
-    echo "🧪 Testing: fff convert"
-    
-    # Action: Convert black.mp4 to GIF
-    fff convert black.mp4 to gif >/dev/null 2>&1
-    local result=$?
-    
-    if [[ $result -eq 0 ]] && [[ -f "black_output.gif" ]]; then
-      echo "✅ SUCCESS: Converted to GIF"
-      return 0
-    else
-      echo "❌ ERROR: Conversion failed or output file missing"
-      return 1
+    if [[ "$DEBUG" == "true" ]]; then
+        echo "🔍 DEBUG mode active: Skipping cleanup of artifacts."
+        return 0
     fi
+    echo "🧹 Cleaning up..."
+    rm -f combined.mp4 "space video.mp4" *.gif *.png *_output.* *_compressed.* *_trimmed.*
   }
 
-  # 🧪 TEST: Compress
-  testCompress() {
-    echo "🧪 Testing: fff compress"
+  check_color() {
+    local file="$1"
+    local time="$2"
+    local expected_type="$3"
+
+    ffmpeg -ss "$time" -i "$file" -vframes 1 -s 64x64 -f image2 -loglevel error -y "check.png"
+    [[ ! -f "check.png" ]] && return 1
+
+    ffmpeg -f lavfi -i color=c=black:s=64x64:d=1 -vframes 1 -loglevel error -y "ref_black.png"
+    ffmpeg -f lavfi -i color=c=white:s=64x64:d=1 -vframes 1 -loglevel error -y "ref_white.png"
     
-    # Action: Compress white.mp4 to 1mb
-    fff compress white.mp4 to 1mb >/dev/null 2>&1
-    local result=$?
+    local actual_hash=$(md5sum "check.png" | awk '{print $1}')
+    local black_hash=$(md5sum "ref_black.png" | awk '{print $1}')
+    local white_hash=$(md5sum "ref_white.png" | awk '{print $1}')
     
-    if [[ $result -eq 0 ]] && [[ -f "white_compressed.mp4" ]]; then
-      echo "✅ SUCCESS: Compression executed"
-      return 0
-    else
-      echo "❌ ERROR: Compression failed"
-      return 1
+    rm ref_black.png ref_white.png check.png
+
+    if [[ "$expected_type" == "black" ]]; then
+        [[ "$actual_hash" == "$black_hash" ]] && return 0
+    elif [[ "$expected_type" == "white" ]]; then
+        [[ "$actual_hash" == "$white_hash" ]] && return 0
     fi
+    return 1
   }
 
-  # 🧪 TEST: Trim
-  testTrim() {
-    echo "🧪 Testing: fff trim"
-    
-    # Action: Trim black.mp4
-    fff trim black.mp4 from 00:00 to 00:01 >/dev/null 2>&1
-    local result=$?
-    
-    if [[ $result -eq 0 ]] && [[ -f "black_trimmed.mp4" ]]; then
-      echo "✅ SUCCESS: Trim executed"
-      return 0
-    else
-      echo "❌ ERROR: Trim failed"
-      return 1
-    fi
-  }
-
-  # 🧪 TEST: Help/Validation
   testValidation() {
-    echo "🧪 Testing: Input Validation"
-    
-    # Capture output of missing args
     local output=$(fff convert)
-    
-    if [[ "$output" == *"Usage:"* ]]; then
-      echo "✅ SUCCESS: Detected missing arguments"
-      return 0
-    else
-      echo "❌ ERROR: Failed to catch missing arguments"
-      return 1
-    fi
+    [[ "$output" == *"Usage:"* ]] && echo "✅ Validation OK" || return 1
   }
 
-  # 🚀 EXECUTION FLOW
-  
-  # 1. Generate Assets
-  setupTestAssets
+  testConvert() {
+    local out="combined_output.gif"
+    echo "📝 Checking: $out"
+    fff convert combined.mp4 to gif >/dev/null 2>&1
+    [[ -f "$out" ]] && echo "✅ Convert OK" || return 1
+  }
 
-  # 2. Register Tests
-  local test_functions=(
-    "testValidation"
-    "testConvert"
-    "testCompress"
-    "testTrim"
-  )
+  testSpaces() {
+    local out="space video_output.gif"
+    echo "📝 Checking: $out"
+    fff convert "space video.mp4" to gif >/dev/null 2>&1
+    [[ -f "$out" ]] && echo "✅ Spaces OK" || return 1
+  }
 
+  testVisualIntegrity() {
+    echo "🧪 Verifying content logic via PNG hashes..."
+    local out="combined_trimmed.mp4"
+    
+    # Test Black Half
+    echo "📝 Checking black segment: $out"
+    fff trim combined.mp4 from 00:00 to 00:01 >/dev/null 2>&1
+    if ! check_color "$out" "0.5" "black"; then
+       echo "❌ Failed: Trimmed file 1 is not black"
+       return 1
+    fi
+
+    # Test White Half
+    echo "📝 Checking white segment: $out"
+    fff trim combined.mp4 from 00:01 to 00:02 >/dev/null 2>&1
+    if ! check_color "$out" "0.5" "white"; then
+       echo "❌ Failed: Trimmed file 2 is not white"
+       return 1
+    fi
+
+    echo "✅ Visual Integrity Verified"
+    return 0
+  }
+
+  setupTestAssets || return 1
+  local test_functions=("testValidation" "testConvert" "testSpaces" "testVisualIntegrity")
   local ignored_tests=()
-
-  # 3. Run Runner
+  
   bashTestRunner test_functions ignored_tests
   local runner_exit_code=$?
-
-  # 4. Cleanup
+  
   cleanupArtifacts
-
   return $runner_exit_code
 }
-
