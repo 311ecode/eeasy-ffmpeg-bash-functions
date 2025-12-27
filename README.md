@@ -1,66 +1,114 @@
-# fff — Easy ffmpeg function
+# fff
 
-A simple, intuitive command-line tool that wraps ffmpeg functionality using natural language syntax. Instead of complex ffmpeg flags, use plain English commands like "convert this file to gif" or "compress this video to 10mb".
-
-## 📋 Quick Start
-
-To enable the `fff` function in your terminal, simply source the project loader:
+**Stop Googling ffmpeg commands.**
 
 ```bash
-# Add this to your .bashrc or .zshrc
-source /path/to/fff/loader
+fff convert video.mp4 to gif
 
 ```
 
-## 🚀 Usage Guide
+That's it. No flags. No manuals. Just plain English.
+
+**fff** is a pure Bash port of [ezff](https://github.com/josharsh/ezff). It functions as a lightweight wrapper for `ffmpeg` that lives in your shell.
+
+## Installation
+
+No `npm`, no dependencies (other than `ffmpeg`). Just source it.
+
+1. **Clone the repo:**
+```bash
+git clone [https://github.com/yourusername/ezfff.git](https://github.com/yourusername/ezfff.git)
+cd ezfff
+
+```
+
+
+2. **Source it in your shell:**
+```bash
+source fff.sh
+
+```
+
+
+3. **(Optional) Add to your `.bashrc` or `.zshrc`:**
+```bash
+echo 'source /path/to/ezfff/fff.sh' >> ~/.bashrc
+
+```
+
+
+
+## Usage
+
+Once sourced, the `fff` command is available globally.
 
 ### Convert
 
-**`fff convert <file> to <format>`**
-
-* **Example:** `fff convert video.mp4 to gif`
-* **Example:** `fff convert movie.mov to mp4`
-* **Example:** `fff convert song.wav to mp3`
-
-### Compress
-
-**`fff compress <file> to <size>mb`**
-
-* **Example:** `fff compress large_video.mp4 to 10mb`
-* **Example:** `fff compress recording.mov to 5mb`
-
-### Trim
-
-**`fff trim <file> from <start> to <end>`**
-
-* **Example:** `fff trim clip.mp4 from 00:01:30 to 00:02:00`
-* **Example:** `fff trim audio.mp3 from 00:10 to 00:45`
-
----
-
-## 🧪 Testing
-
-This project uses [bashTestRunner](https://github.com/311ecode/bashTestRunner) for quality assurance.
-
-To run the test suite:
-
-1. Source the **bashTestRunner** loader.
-2. Source the **fff** loader.
-3. Execute the test command.
-
 ```bash
-source path/to/bashTestRunner/loader
-source path/to/fff/loader
-testFFF
+fff convert video.mp4 to gif
+fff convert recording.wav to mp3
 
 ```
 
-## 🔧 Requirements
+### Compress
 
-* **ffmpeg**: Required for all media operations.
-* **Bash**: Version 4.0 or higher.
+Target a specific file size.
 
-## 📝 Notes
+```bash
+fff compress video.mp4 to 10mb
+fff compress large_file.mov to 50mb
 
-* All operations are **non-destructive** (original files remain untouched).
-* Output files are named with suffixes: `_output`, `_compressed`, or `_trimmed`.
+```
+
+### Trim
+
+Cut video without re-encoding (where possible).
+
+```bash
+fff trim video.mp4 from 00:30 to 01:00
+
+```
+
+### Help
+
+```bash
+fff help
+
+```
+
+## How It Works
+
+The architecture is modular. `fff` acts as a router that dispatches commands to specific function files loaded into the namespace.
+
+```text
+User Input: "fff convert ..."
+     ↓
+fff() [Router in fff.sh]
+     ↓ checks fff_functions/
+Calls fff_convert() [in fff_functions/fff_convert.sh]
+     ↓
+Executes ffmpeg command
+
+```
+
+## Testing
+
+We use [bashTestRunner](https://github.com/311ecode/bashTestRunner) for our test suite. It allows us to run isolated, robust tests on the shell functions.
+
+To run the tests, use the provided helper script which automatically handles the test runner dependency:
+
+```bash
+./scripts/run_tests.sh
+
+```
+
+If you want to explore the test runner framework itself, visit the **[bashTestRunner repository](https://github.com/311ecode/bashTestRunner)**.
+
+## Requirements
+
+* **Bash** 4.0+
+* **ffmpeg** installed and in PATH
+
+## License
+
+MIT

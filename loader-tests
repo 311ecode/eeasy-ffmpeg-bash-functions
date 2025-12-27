@@ -1,0 +1,18 @@
+#!/bin/bash
+# Sources all .sh scripts for the fff project
+
+# Guard to prevent sourcing multiple times
+if [[ -n "$LOADER_EZFFF_0A4D2462_LOADED" ]]; then
+    return 0
+fi
+export LOADER_EZFFF_0A4D2462_LOADED=1
+
+# Determine this script's own directory
+export LOADER_EZFFF_0A4D2462_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
+# --- Test Suites ---
+source "$LOADER_EZFFF_0A4D2462_DIR/tests/test_fff_all.sh"
+source "$LOADER_EZFFF_0A4D2462_DIR/tests/test_fff.sh"
+source "$LOADER_EZFFF_0A4D2462_DIR/tests/test_fff_visual.sh"
+source "$LOADER_EZFFF_0A4D2462_DIR/tests/test_fff_cleanup.sh"
+source "$LOADER_EZFFF_0A4D2462_DIR/tests/test_fff_merge_loop.sh"

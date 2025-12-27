@@ -41,6 +41,7 @@ source "$LOADER_EZFFF_0A4D2461_DIR/fff_functions/fff_stabilize.sh"
 source "$LOADER_EZFFF_0A4D2461_DIR/fff_functions/fff_denoise.sh"
 
 # --- Test Suites ---
+source "$LOADER_EZFFF_0A4D2461_DIR/tests/test_fff_all.sh"
 source "$LOADER_EZFFF_0A4D2461_DIR/tests/test_fff.sh"
 source "$LOADER_EZFFF_0A4D2461_DIR/tests/test_fff_visual.sh"
 source "$LOADER_EZFFF_0A4D2461_DIR/tests/test_fff_cleanup.sh"
