@@ -1,0 +1,16 @@
+function fff_help() {
+    echo ""
+    echo "  fff — Plain English Bash ffmpeg wrapper"
+    echo ""
+    echo "  Usage:"
+    echo "    fff convert <file> to <format>"
+    echo "    fff compress <file> to <size>mb"
+    echo "    fff trim <file> from <start> to <end>"
+    echo "    fff help"
+    echo ""
+    echo "  Examples:"
+    echo "    fff convert video.mp4 to gif"
+    echo "    fff compress large.mov to 10mb"
+    echo "    fff trim video.mp4 from 00:30 to 01:00"
+    echo ""
+}
