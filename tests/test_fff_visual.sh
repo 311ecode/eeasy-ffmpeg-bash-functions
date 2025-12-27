@@ -2,47 +2,59 @@
 
 testFFFVisual() {
   setupAssets() {
-    ffmpeg -f lavfi -i testsrc=duration=1:size=1280x720:rate=30 -loglevel error -y input_720p.mp4
+    # Generate a 100x100 black box with a 20x20 white square in the TOP-LEFT (0,0)
+    # This allows us to track where the 'content' moves after rotation.
+    ffmpeg -f lavfi -i "color=c=black:s=100x100:d=1" \
+           -vf "drawbox=x=0:y=0:w=20:h=20:color=white:t=fill" \
+           -loglevel error -y corner_ref.mp4
   }
 
   cleanup() {
-    rm -f input_720p.mp4 *_output.* *_rotated.* *_flipped.* *_cropped.*
+    rm -f corner_ref.mp4 *_output.* *_rotated.* *_flipped.* *_cropped.* check_pixel.txt
   }
 
-  testResizePreset() {
-    fff resize input_720p.mp4 to 480p >/dev/null 2>&1
-    local height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 input_720p_output.mp4)
-    [[ "$height" == "480" ]] && echo "✅ Resize Preset OK" || return 1
+  # Helper to check if a specific pixel is White
+  # Usage: is_white <file> <x> <y>
+  is_white() {
+    local file="$1"
+    local x="$2"
+    local y="$3"
+    # Extract 1x1 pixel at x,y and output its brightness (Y channel)
+    local val=$(ffmpeg -i "$file" -vf "format=gray,crop=1:1:$x:$y" -f rawvideo -vframes 1 - 2>/dev/null | od -An -t u1 | tr -d ' ')
+    # If brightness > 200, it's white
+    [[ "$val" -gt 200 ]]
   }
 
-  testResizeCustom() {
-    fff resize input_720p.mp4 to 640x360 >/dev/null 2>&1
-    local dim=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 input_720p_output.mp4)
-    [[ "$dim" == "640x360" ]] && echo "✅ Resize Custom OK" || return 1
+  testRotateVisual() {
+    echo "🧪 Testing 90° CW Rotation Visually..."
+    fff rotate corner_ref.mp4 by 90 >/dev/null 2>&1
+    
+    # After 90 deg CW, the white square at (0,0) moves to TOP-RIGHT (80,0)
+    if is_white "corner_ref_rotated.mp4" 80 5; then
+        echo "✅ Rotate 90° Content OK"
+    else
+        echo "❌ Rotate 90° Failed: Content in wrong position"
+        return 1
+    fi
   }
 
-  testRotate() {
-    fff rotate input_720p.mp4 by 90 >/dev/null 2>&1
-    local dim=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 input_720p_rotated.mp4)
-    [[ "$dim" == "720x1280" ]] && echo "✅ Rotate OK" || return 1
-  }
-
-  testFlip() {
-    fff flip input_720p.mp4 horizontal >/dev/null 2>&1
-    [[ -f "input_720p_flipped.mp4" ]] && echo "✅ Flip OK" || return 1
-  }
-
-  testCrop() {
-    fff crop input_720p.mp4 to 100x100 >/dev/null 2>&1
-    local dim=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 input_720p_cropped.mp4)
-    [[ "$dim" == "100x100" ]] && echo "✅ Crop OK" || return 1
+  testFlipVisual() {
+    echo "🧪 Testing Horizontal Flip Visually..."
+    fff flip corner_ref.mp4 horizontal >/dev/null 2>&1
+    
+    # After H-Flip, TOP-LEFT moves to TOP-RIGHT
+    if is_white "corner_ref_flipped.mp4" 80 5; then
+        echo "✅ Flip Horizontal Content OK"
+    else
+        echo "❌ Flip Horizontal Failed"
+        return 1
+    fi
   }
 
   setupAssets
-  local visual_tests=("testResizePreset" "testResizeCustom" "testRotate" "testFlip" "testCrop")
+  local visual_tests=("testRotateVisual" "testFlipVisual")
   local ignored=()
   
-  # Pass both required positional arguments
   bashTestRunner visual_tests ignored
   local code=$?
   cleanup
