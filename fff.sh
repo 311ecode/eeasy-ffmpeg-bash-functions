@@ -3,29 +3,28 @@
 # Define the root directory relative to this script
 FFF_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source all function files into the global namespace
-if [ -d "$FFF_ROOT/fff_functions" ]; then
-    for file in "$FFF_ROOT/fff_functions"/*.sh; do
-        [ -e "$file" ] && source "$file"
-    done
-fi
-
 function fff() {
     local action="$1"
     
-    # Default to help if no action provided
+    # 1. Interactive Mode Check
+    # If no arguments are passed, try to launch gum-based interactive mode
     if [ -z "$action" ]; then
-        fff_help
-        return 0
+        if command -v gum &> /dev/null; then
+            fff_interactive
+            return $?
+        else
+            fff_help
+            return 0
+        fi
     fi
 
-    # Dispatcher: Construct the function name (e.g., fff_convert)
+    # 2. Command Dispatcher
+    # Map 'fff speed' to 'fff_speed', etc.
     local func_name="fff_${action}"
 
-    # Check if the specific function exists in the namespace
     if declare -F "$func_name" > /dev/null; then
-        shift # Remove the action from args
-        "$func_name" "$@" # Execute specific function with remaining args
+        shift # Remove action name from arguments
+        "$func_name" "$@"
     else
         echo "❌ Unknown command: '$action'"
         echo "Try 'fff help' to see available commands."

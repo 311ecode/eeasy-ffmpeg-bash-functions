@@ -93,7 +93,10 @@ testFFF() {
   }
 
   setupTestAssets || return 1
-  local test_functions=("testValidation" "testConvert" "testSpaces" "testVisualIntegrity")
+  local test_functions=(
+    "testValidation" "testConvert" 
+    "testSpaces" "testVisualIntegrity" 
+    "testFFFCleanup" "testFFFMergeLoop"
   local ignored_tests=()
   
   bashTestRunner test_functions ignored_tests
