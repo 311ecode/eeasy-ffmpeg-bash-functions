@@ -1,85 +1,66 @@
-# fff — Plain English Bash ffmpeg wrapper
+# fff — Easy ffmpeg function
 
 A simple, intuitive command-line tool that wraps ffmpeg functionality using natural language syntax. Instead of complex ffmpeg flags, use plain English commands like "convert this file to gif" or "compress this video to 10mb".
 
-## 📋 Installation & Usage
+## 📋 Quick Start
 
-To use `fff` in your terminal, simply source the loader file in your `.bashrc` or current session:
+To enable the `fff` function in your terminal, simply source the project loader:
 
 ```bash
+# Add this to your .bashrc or .zshrc
 source /path/to/fff/loader
 
 ```
 
-### Available Commands
+## 🚀 Usage Guide
 
-#### `fff convert <file> to <format>`
+### Convert
 
-Converts media files between different formats.
+**`fff convert <file> to <format>`**
 
-**Parameters:**
+* **Example:** `fff convert video.mp4 to gif`
+* **Example:** `fff convert movie.mov to mp4`
+* **Example:** `fff convert song.wav to mp3`
 
-* `<file>`: **Required** - Input media file (video or audio)
-* `to`: **Required** - Literal word "to"
-* `<format>`: **Required** - Target format (gif, mp3, wav, aac, flac, ogg, mp4, mov, etc.)
+### Compress
 
-**Examples:**
+**`fff compress <file> to <size>mb`**
 
-```bash
-fff convert video.mp4 to gif
-fff convert audio.m4a to mp3
+* **Example:** `fff compress large_video.mp4 to 10mb`
+* **Example:** `fff compress recording.mov to 5mb`
 
-```
+### Trim
 
-#### `fff compress <file> to <size>mb`
+**`fff trim <file> from <start> to <end>`**
 
-Compresses video files to approximately target file size.
-
-**Parameters:**
-
-* `<file>`: **Required** - Input video file
-* `to`: **Required** - Literal word "to"
-* `<size>mb`: **Required** - Target size in megabytes (e.g., "10mb")
-
-#### `fff trim <file> from <start> to <end>`
-
-Trims video/audio files to specific time segments.
-
-**Parameters:**
-
-* `<file>`: **Required** - Input media file
-* `from`: **Required** - Literal word "from"
-* `<start>`: **Required** - Start timestamp (HH:MM:SS or MM:SS)
-* `to`: **Required** - Literal word "to"
-* `<end>`: **Required** - End timestamp (HH:MM:SS or MM:SS)
+* **Example:** `fff trim clip.mp4 from 00:01:30 to 00:02:00`
+* **Example:** `fff trim audio.mp3 from 00:10 to 00:45`
 
 ---
 
 ## 🧪 Testing
 
-The test suite requires the [bashTestRunner](https://github.com/311ecode/bashTestRunner).
+This project uses [bashTestRunner](https://github.com/311ecode/bashTestRunner) for quality assurance.
 
-To run the tests:
+To run the test suite:
 
 1. Source the **bashTestRunner** loader.
 2. Source the **fff** loader.
-3. Run the test function:
+3. Execute the test command.
 
 ```bash
-source /path/to/bashTestRunner/loader
-source /path/to/fff/loader
+source path/to/bashTestRunner/loader
+source path/to/fff/loader
 testFFF
 
 ```
 
-## 🔧 Technical Details
+## 🔧 Requirements
 
-* **Output Files**: Created in the working directory with suffixes like `_output`, `_compressed`, or `_trimmed`.
-* **GIF Conversion**: Uses high-quality palette generation and Lanczos scaling.
-* **Audio Extraction**: Supports mp3, wav, aac, flac, and ogg.
-* **Video Compression**: Dynamically adjusts CRF based on target size (5MB, 10MB, 20MB thresholds).
-
-## ⚠️ Requirements
-
-* **ffmpeg**: Must be installed and available in PATH.
+* **ffmpeg**: Required for all media operations.
 * **Bash**: Version 4.0 or higher.
+
+## 📝 Notes
+
+* All operations are **non-destructive** (original files remain untouched).
+* Output files are named with suffixes: `_output`, `_compressed`, or `_trimmed`.
